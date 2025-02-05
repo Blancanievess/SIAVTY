@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Agent Tracking Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Leaflet CSS for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(130deg, #231a6f, #0f054c);
+            padding-top: 20px;
+        }
+        .sidebar a {
+            display: block;
+            padding: 15px;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .sidebar a:hover {
+            background: #495057;
+        }
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 8px;
+        }
+        .stat-box {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="text-center text-white">Tracking Dashboard</h4>
+        <a href="#"><i class="fas fa-map-marker-alt"></i> Live Tracking</a>
+        <a href="geo.html"><i class="fas fa-user-shield"></i> Security Agents</a>
+        <a href="#"><i class="fas fa-chart-line"></i> Reports</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <h2>Real-Time Security Agent Tracking</h2>
+        
+        <!-- Live Map -->
+        <div id="map"></div>
+
+        <!-- Statistics Section -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="stat-box">
+                    <h5>Active Agents</h5>
+                    <h2 id="activeAgents">0</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-box">
+                    <h5>Alerts Triggered</h5>
+                    <h2 id="alertsTriggered">0</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-box">
+                    <h5>Geofencing Breaches</h5>
+                    <h2 id="breaches">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent List -->
+        <div class="mt-4">
+            <h4>Security Agents List</h4>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Agent ID</th>
+                        <th>Name</th>
+                        <th>Last Seen</th>
+                    </tr>
+                </thead>
+                <tbody id="agentTable">
+                    <!-- Data will be inserted dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Leaflet JS for Maps -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <!-- Leaflet Heatmap Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+
+    <!-- Bootstrap & jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([34.0209, -6.8416], 13); // Default to Rabat
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Sample security agents data
+        var agents = [
+            { id: "A001", name: "John Doe", lat: 34.0219, lon: -6.8410, lastSeen: "2 min ago" },
+            { id: "A002", name: "Jane Smith", lat: 34.0195, lon: -6.8435, lastSeen: "5 min ago" },
+            { id: "A003", name: "Mike Johnson", lat: 34.0232, lon: -6.8403, lastSeen: "1 min ago" },
+            { id: "A004", name: "Emily Davis", lat: 34.0240, lon: -6.8420, lastSeen: "3 min ago" }
+        ];
+
+        // Display agents as markers on map
+        agents.forEach(agent => {
+            L.marker([agent.lat, agent.lon]).addTo(map)
+                .bindPopup(`<b>${agent.name}</b><br>Last Seen: ${agent.lastSeen}`);
+        });
+
+        // Create Heatmap Data Array
+        var heatmapData = agents.map(agent => [agent.lat, agent.lon, 0.8]); // 0.8 intensity
+
+        // Add Heatmap Layer
+        var heat = L.heatLayer(heatmapData, {
+            radius: 25,
+            blur: 15,
+            maxZoom: 15
+        }).addTo(map);
+
+        // Update statistics
+        document.getElementById("activeAgents").innerText = agents.length;
+        document.getElementById("alertsTriggered").innerText = Math.floor(Math.random() * 5);
+        document.getElementById("breaches").innerText = Math.floor(Math.random() * 3);
+
+        // Populate the agents table
+        function updateAgentTable() {
+            var tableBody = document.getElementById("agentTable");
+            tableBody.innerHTML = "";
+            agents.forEach(agent => {
+                var row = `<tr>
+                    <td>${agent.id}</td>
+                    <td>${agent.name}</td>
+                    <td>${agent.lastSeen}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+        updateAgentTable();
+    </script>
+
+</body>
+</html>

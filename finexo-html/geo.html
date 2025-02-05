@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAV Security Zones Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <script src="iav/ses.geojson"></script> <!-- Chargement du fichier GeoJSON -->
+
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif, sans-serif;
+            background: linear-gradient(130deg, #231a6f, #0f054c); /* Ajout du fond dégradé */
+            color: white; /* Texte en blanc pour meilleure visibilité */
+        }
+        #map {
+            height: 500px;
+            width: 70%;
+            float: left;
+        }
+        .info-panel {
+            width: 30%;
+            float: left;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2); /* Légère transparence pour un effet moderne */
+            height: 500px;
+            overflow-y: auto;
+            border-radius: 10px; /* Coins arrondis pour un meilleur design */
+        }
+        table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2); /* Transparence du tableau */
+            border-radius: 8px; /* Coins arrondis */
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            color: white; /* Texte en blanc */
+        }
+    </style>
+    
+</head>
+<body>
+
+    <h2 class="text-center mt-3">IAV Security Zones Map</h2>
+
+    <div id="map"></div>
+
+    <div class="info-panel">
+        <h4>Security Agents List</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Agent Name</th>
+                    <th>Zone</th>
+                    <th>Nom de la zone</th>
+                </tr>
+            </thead>
+            <tbody id="agentTable">
+                <!-- Data will be inserted dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <!-- Ajouter le GeoJSON directement -->
+    <script>
+        var map = L.map('map').setView([33.979, -6.86], 15); // Centré sur IAV
+
+        // Ajouter une couche OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Liste de couleurs pour différencier les zones
+        var colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF", "#33FFF5", "#FFB533", "#33FFA1", "#FF3387", "#FF8833"];
+        var zoneColors = {}; // Stocke les couleurs attribuées aux zones
+
+        // Définition et ajout de l'objet GeoJSON 'ses' avec un style spécifique par zone
+        var ses = L.geoJSON(ses, {
+            style: function(feature) {
+                var zoneID = feature.properties.Zone;
+                
+                // Assigner une couleur unique à chaque zone
+                if (!zoneColors[zoneID]) {
+                    zoneColors[zoneID] = colors[zoneID % colors.length];
+                }
+
+                return {
+                    color: zoneColors[zoneID], // Applique la couleur de la zone
+                    weight: 5,
+                    opacity: 0.65
+                };
+            },
+            onEachFeature: function(feature, layer) {
+                var popupContent = `<b>Zone: ${feature.properties.Zone}</b><br>
+                        <b>Nom: ${feature.properties.nature}</b><br>
+                        Agent: ${feature.properties.Agent}`;
+                layer.bindPopup(popupContent);
+            }
+        }).addTo(map);
+        // Sélectionner le tableau pour y ajouter les agents
+var tableBody = document.getElementById("agentTable");
+
+// Ajouter chaque agent avec sa zone et sa nature dans le tableau
+ses.eachLayer(function(layer) {
+    var agentName = layer.feature.properties.Agent;
+    var zoneID = layer.feature.properties.Zone;
+    var natureZone = layer.feature.properties.nature;
+
+    // Créer une nouvelle ligne
+    var row = document.createElement("tr");
+
+    // Ajouter la couleur de la zone pour identification
+    row.style.backgroundColor = zoneColors[zoneID];
+    row.style.color = "white"; // Mettre le texte en blanc pour lisibilité
+
+    // Ajouter les cellules (Agent Name, Zone, Nature)
+    row.innerHTML = `<td>${agentName}</td><td>Zone ${zoneID}</td><td>${natureZone}</td>`;
+
+    // Ajouter la ligne au tableau
+    tableBody.appendChild(row);
+});
+        // Sélectionner le tableau pour y ajouter les agents
+var tableBody = document.getElementById("agentTable");
+
+// Ajouter chaque agent avec sa zone correspondante au tableau
+ses.eachLayer(function(layer) {
+    var agentName = layer.feature.properties.Agent;
+    var zoneID = layer.feature.properties.Zone;
+    
+    // Créer une nouvelle ligne
+    var row = document.createElement("tr");
+    
+    // Ajouter la couleur de la zone pour identification
+    row.style.backgroundColor = zoneColors[zoneID];
+    row.style.color = "white"; // Mettre le texte en blanc pour lisibilité
+
+    // Ajouter les cellules (Agent Name & Zone)
+    row.innerHTML = `<td>${zoneID}</td><td>Zone ${zoneNature}</td><td>Zone ${agentName}</td>`;
+
+    // Ajouter la ligne au tableau
+    tableBody.appendChild(row);
+});
+    </script>
+
+</body>
+</html>
